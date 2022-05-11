@@ -1,0 +1,41 @@
+server:
+  port: 8088
+spring:
+  profiles:
+    active: dev
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/discuz
+    username: root
+  redis:
+    port: 6379
+    # Redis服务器地址
+    host: localhost
+    jedis:
+      pool:
+        max-active: 8
+        # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-wait: -1ms
+        # 连接池中的最大空闲连接
+        max-idle: 8
+        # 连接池中的最小空闲连接
+        min-idle: 0
+    # 连接超时时间（毫秒）
+    timeout: 5000ms
+  jackson:
+    time-zone: GMT+8
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+my:
+  file:
+    mappingPath: /img/
+  oss:
+    endpoint: oss-cn-beijing.aliyuncs.com
+    keyid: 你的keyid
+    keysecret: 你的keysecret
+    bucketname: 你的bucketname
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql

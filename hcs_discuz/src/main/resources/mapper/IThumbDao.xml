@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.niuniu.hcs_discuz.dao.IThumbDao">
+    <sql id="all_columns">
+        thumbId, fromUserId, topicId, commentId, createTime, status
+    </sql>
+
+    <select id="findThumbById" resultType="com.niuniu.hcs_discuz.model.Thumb" parameterType="int">
+        select <include refid="all_columns"/> from thumb where status!=2 and thumbId = #{thumbId}
+    </select>
+
+    <select id="findThumbByCondition" resultType="com.niuniu.hcs_discuz.model.Thumb" parameterType="com.niuniu.hcs_discuz.model.Thumb">
+        select <include refid="all_columns"/> from thumb where status!=2
+        <if test="fromUserId!=null and fromUserId>0"> and fromUserId = #{fromUserId}</if>
+        <if test="topicId!=null and topicId>0"> and topicId = #{topicId}</if>
+        <if test="commentId!=null and commentId>0"> and commentId = #{commentId}</if>
+    </select>
+
+    <insert id="addThumb" parameterType="com.niuniu.hcs_discuz.model.Thumb">
+        insert into thumb (<include refid="all_columns"/>)
+        values (
+        #{thumbId}
+        ,#{fromUserId}
+        ,#{topicId}
+        ,#{commentId}
+        ,now()
+        ,1
+        );
+    </insert>
+
+    <update id="delThumb" parameterType="int">
+        update thumb set status = 2 where status!=2 and thumbId = #{thumbId}
+    </update>
+</mapper>

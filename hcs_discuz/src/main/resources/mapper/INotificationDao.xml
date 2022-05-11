@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.niuniu.hcs_discuz.dao.INotificationDao">
+    <sql id="all_columns">
+        notification.notificationId, notification.toUserId, notification.fromUserId, notification.subject,
+        notification.`action`, notification.status, notification.createTime, notification.handleTime,
+        notification.topicId, notification.commentId
+    </sql>
+
+    <resultMap id="notificationMap" type="com.niuniu.hcs_discuz.model.Notification">
+        <id column="notificationId" property="notificationId"></id>
+        <result column="toUserId" property="toUserId"></result>
+        <result column="fromUserId" property="fromUserId"></result>
+        <result column="subject" property="subject"></result>
+        <result column="action" property="action"></result>
+        <result column="status" property="status"></result>
+        <result column="createTime" property="createTime"></result>
+        <result column="handleTime" property="handleTime"></result>
+        <result column="topicId" property="topicId"></result>
+        <result column="commentId" property="commentId"></result>
+        <association property="user" column="fromUserId" javaType="com.niuniu.hcs_discuz.model.User">
+            <id column="userId" property="userId"/>
+            <result column="username" property="username"/>
+        </association>
+        <association property="topic" column="topicId" javaType="com.niuniu.hcs_discuz.model.Topic">
+            <id column="topicId" property="topicId"/>
+            <result column="title" property="title"/>
+        </association>
+    </resultMap>
+
+    <select id="findAll" resultType="com.niuniu.hcs_discuz.model.Notification">
+        select <include refid="all_columns"/> from notification where status!=3
+    </select>
+
+    <select id="findOneNotificationById" resultType="com.niuniu.hcs_discuz.model.Notification" parameterType="int">
+        select <include refid="all_columns"/> from notification where status!=3 and notificationId = #{notificationId}
+    </select>
+
+    <select id="findNotificationByCondition" resultMap="notificationMap" parameterType="com.niuniu.hcs_discuz.model.Notification">
+        select <include refid="all_columns"/>,`user`.userId,`user`.username,topic.topicId,topic.title
+        from notification,`user`,topic
+        where notification.status!=3 and notification.fromUserId = `user`.userId and notification.topicId=topic.topicId
+        <if test="notificationId!=null and notificationId>0"> and notificationId = #{notificationId}</if>
+        <if test="toUserId!=null and toUserId>0"> and toUserId = #{toUserId}</if>
+        <if test="fromUserId!=null and fromUserId>0"> and fromUserId = #{fromUserId}</if>
+        <if test="status!=null and status>0"> and status = #{status}</if>
+        <if test="topicId!=null and topicId!=''"> and topicId like #{topicId}</if>
+        <if test="commentId!=null and commentId>0"> and commentId = #{commentId}</if>
+        order by notification.notificationId desc
+    </select>
+
+    <insert id="addNotification" parameterType="com.niuniu.hcs_discuz.model.Notification">
+        insert into notification (<include refid="all_columns"/>)
+        values (
+        #{notificationId}
+        ,#{toUserId}
+        ,#{fromUserId}
+        ,#{subject}
+        ,#{action}
+        ,1
+        ,now()
+        ,null
+        ,#{topicId}
+        ,#{commentId}
+        );
+    </insert>
+
+    <update id="handleNotification" parameterType="int">
+        update notification set status = 2, handleTime = now()
+        where status!=3 and status=1 and toUserId = #{toUserId}
+    </update>
+
+</mapper>

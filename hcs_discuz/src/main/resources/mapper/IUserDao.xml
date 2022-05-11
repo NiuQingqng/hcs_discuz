@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.niuniu.hcs_discuz.dao.IUserDao">
+    <sql id="all_columns">
+        userId
+        ,username
+        ,password
+        ,stuNo
+        ,sex
+        ,birthday
+        ,city
+        ,realname
+        ,phone
+        ,email
+        ,avatar
+        ,`describe`
+        ,registerTime
+        ,lastLoginTime
+        ,lastLoginIp
+        ,`role`
+        ,status
+        ,topicCount
+        ,commentCount
+        ,thumbCount
+    </sql>
+    <select id="findAll" resultType="com.niuniu.hcs_discuz.model.User">
+        select <include refid="all_columns"/> from user where status!=3
+    </select>
+
+    <select id="findOneUserById" resultType="com.niuniu.hcs_discuz.model.User" parameterType="int">
+        select <include refid="all_columns"/> from user where status!=3 and userId = #{userId}
+    </select>
+
+    <select id="findOneUserByUnameAndPwd" resultType="com.niuniu.hcs_discuz.model.User" parameterType="com.niuniu.hcs_discuz.model.User">
+        select <include refid="all_columns"/> from user
+         where status!=3 and username = #{username} and password = #{password}
+    </select>
+
+    <select id="findUserByCondition" resultType="com.niuniu.hcs_discuz.model.User" parameterType="com.niuniu.hcs_discuz.model.User">
+        select <include refid="all_columns"/> from user where status!=3
+        <if test="userId!=null and userId>0"> and userId = #{userId}</if>
+        <if test="username!=null and username!=''"> and username like #{username}</if>
+        <if test="stuNo!=null and stuNo>0"> and stuNo = #{stuNo}</if>
+        <if test="realname!=null and realname!=''"> and realname = #{realname}</if>
+        <if test="phone!=null and phone>0"> and phone = #{phone}</if>
+        <if test="email!=null and email!=''"> and email = #{email}</if>
+        <if test="role!=null and role>0"> and `role` = #{role}</if>
+        <if test="status!=null and status>0"> and status = #{status}</if>
+    </select>
+    
+    <insert id="addUser" parameterType="com.niuniu.hcs_discuz.model.User">
+        insert into user (<include refid="all_columns"/>)
+        values (
+            #{userId}
+            ,#{username}
+            ,#{password}
+            ,#{stuNo}
+            ,#{sex}
+            ,#{birthday}
+            ,#{city}
+            ,#{realname}
+            ,#{phone}
+            ,#{email}
+            ,#{avatar}
+            ,#{describe}
+            ,now()
+            ,now()
+            ,#{lastLoginIp}
+            <if test="role==null">
+                ,1
+            </if>
+            <if test="role!=null">
+                ,#{role}
+            </if>
+            ,1
+            ,0
+            ,0
+            ,0
+        );
+    </insert>
+
+    <update id="updateUser" parameterType="com.niuniu.hcs_discuz.model.User">
+        update user
+        <set>
+            <if test="username!=null and username!=''"> username = #{username},</if>
+            <if test="password!=null and password!=''"> password = #{password},</if>
+            <if test="stuNo!=null and stuNo>0"> stuNo = #{stuNo},</if>
+            <if test="sex!=null and sex!=''"> sex = #{sex},</if>
+            <if test="birthday!=null"> birthday = #{birthday},</if>
+            <if test="city!=null and city!=''"> city = #{city},</if>
+            <if test="realname!=null and realname!=''"> realname = #{realname},</if>
+            <if test="phone!=null and phone>0"> phone = #{phone},</if>
+            <if test="email!=null and email!=''"> email = #{email},</if>
+            <if test="avatar!=null and avatar!=''"> avatar = #{avatar},</if>
+            <if test="describe!=null and describe!=''"> `describe` = #{describe},</if>
+            <if test="status!=null and status>0"> status = #{status}</if>
+        </set>
+        where status!=3 and userId = #{userId}
+    </update>
+
+    <update id="updateUserLoginInfo" parameterType="com.niuniu.hcs_discuz.model.User">
+        update user set lastLoginTime = now(),lastLoginIp = #{lastLoginIp} where status!=3 and userId = #{userId}
+    </update>
+
+<!--    发帖、评论、收到点赞时更新数量，update里set标签可以智能去除最后一个逗号-->
+    <update id="updateCount" parameterType="com.niuniu.hcs_discuz.model.User">
+        update user
+        <set>
+            <if test="topicCount!=null and topicCount>=0"> topicCount = #{topicCount},</if>
+            <if test="commentCount!=null and commentCount>=0"> commentCount = #{commentCount},</if>
+            <if test="thumbCount!=null and thumbCount>=0"> thumbCount = #{thumbCount}</if>
+        </set>
+        where status!=3 and userId = #{userId}
+    </update>
+
+</mapper>

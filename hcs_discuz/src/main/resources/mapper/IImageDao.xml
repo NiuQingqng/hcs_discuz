@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.niuniu.hcs_discuz.dao.IImageDao">
+    <sql id="all_columns">
+        imageId, topicId, commentId, adviseId, `path`, uploadTime, uploadUserId, status
+    </sql>
+
+    <select id="findAll" resultType="com.niuniu.hcs_discuz.model.Image">
+        select <include refid="all_columns"/> from image where status!=2
+    </select>
+
+    <select id="findOneImageById" resultType="com.niuniu.hcs_discuz.model.Image" parameterType="int">
+        select <include refid="all_columns"/> from image where status!=2 and imageId = #{imageId}
+    </select>
+
+    <select id="findImageByCondition" resultType="com.niuniu.hcs_discuz.model.Image" parameterType="com.niuniu.hcs_discuz.model.Image">
+        select <include refid="all_columns"/> from image where status!=2
+        <if test="topicId!=null and topicId>0"> and topicId = #{topicId}</if>
+        <if test="commentId!=null and commentId>0"> and commentId = #{commentId}</if>
+        <if test="adviseId!=null and adviseId>0"> and adviseId = #{adviseId}</if>
+        <if test="uploadUserId!=null and uploadUserId>0"> and uploadUserId = #{uploadUserId}</if>
+    </select>
+
+    <insert id="addImage" parameterType="com.niuniu.hcs_discuz.model.Image">
+        insert into image (<include refid="all_columns"/>)
+        values (
+        #{imageId}
+        ,#{topicId}
+        ,#{commentId}
+        ,#{adviseId}
+        ,#{path}
+        ,now()
+        ,#{uploadUserId}
+        ,1
+        );
+    </insert>
+
+    <update id="delImage" parameterType="int">
+        update image set status = 2 where status!=2 and imageId = #{imageId}
+    </update>
+</mapper>

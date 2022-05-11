@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.niuniu.hcs_discuz.dao.ICommentDao">
+    <sql id="all_columns">
+        comment.commentId, comment.userId, comment.topicId, comment.rootId, comment.content, comment.createTime, comment.status, comment.thumbCount, comment.commentCount
+    </sql>
+
+    <resultMap id="commentMap" type="com.niuniu.hcs_discuz.model.Comment">
+        <id column="commentId" property="commentId"/>
+        <result column="userId" property="userId"></result>
+        <result column="topicId" property="topicId"></result>
+        <result column="rootId" property="rootId"></result>
+        <result column="content" property="content"></result>
+        <result column="createTime" property="createTime"></result>
+        <result column="status" property="status"></result>
+        <result column="thumbCount" property="thumbCount"></result>
+        <result column="commentCount" property="commentCount"></result>
+        <association property="user" column="userId" javaType="com.niuniu.hcs_discuz.model.User">
+            <id column="userId" property="userId"/>
+            <result column="username" property="username"/>
+            <result column="avatar" property="avatar"/>
+        </association>
+    </resultMap>
+
+    <select id="findAll" resultMap="commentMap">
+        select <include refid="all_columns"/>,`user`.userId,`user`.username,`user`.avatar
+        from comment,`user`
+        where comment.status!=2 and comment.userId = `user`.userId
+    </select>
+
+    <select id="findOneCommentById" resultMap="commentMap" parameterType="int">
+        select <include refid="all_columns"/>,`user`.userId,`user`.username,`user`.avatar from comment,`user`
+        where comment.status!=2 and commentId = #{commentId} and comment.userId = `user`.userId
+    </select>
+
+    <select id="findCommentByCondition" resultMap="commentMap" parameterType="com.niuniu.hcs_discuz.model.Comment">
+        select <include refid="all_columns"/>,`user`.userId,`user`.username,`user`.avatar
+        from comment,`user` where comment.status!=2 and comment.userId = `user`.userId
+        <if test="commentId!=null and commentId>0"> and comment.commentId = #{commentId}</if>
+        <if test="userId!=null and userId>0"> and comment.userId = #{userId}</if>
+        <if test="topicId!=null and topicId>0"> and comment.topicId = #{topicId}</if>
+        <if test="rootId!=null and rootId>0"> and comment.rootId = #{rootId}</if>
+        <if test="content!=null and content!=''"> and comment.content like #{content}</if>
+        <if test="status!=null and status>0"> and comment.status = #{status}</if>
+        order by comment.createTime desc
+    </select>
+
+    <insert id="addComment" parameterType="com.niuniu.hcs_discuz.model.Comment">
+        insert into comment (<include refid="all_columns"/>)
+        values (
+        #{commentId}
+        ,#{userId}
+        ,#{topicId}
+        ,#{rootId}
+        ,#{content}
+        ,now()
+        ,1
+        ,0
+        ,0
+        );
+    </insert>
+
+    <update id="updateComment" parameterType="com.niuniu.hcs_discuz.model.Comment">
+        update comment
+        <set>
+            <if test="userId!=null and userId>0"> userId = #{userId},</if>
+            <if test="topicId!=null and topicId>0"> topicId = #{topicId},</if>
+            <if test="rootId!=null and rootId>0"> rootId = #{rootId},</if>
+            <if test="content!=null and content!=''"> content = #{content},</if>
+        </set>
+        where status!=2 and commentId = #{commentId}
+    </update>
+
+    <!--    被浏览、收到点赞、评论时更新数量，update里set标签可以智能去除最后一个逗号-->
+    <update id="updateCount" parameterType="com.niuniu.hcs_discuz.model.Comment">
+        update comment
+        <set>
+            <if test="thumbCount!=null and thumbCount>=0"> thumbCount = #{thumbCount},</if>
+            <if test="commentCount!=null and commentCount>=0"> commentCount = #{commentCount},</if>
+        </set>
+        where status!=2 and commentId = #{commentId}
+    </update>
+
+    <update id="delComment" parameterType="int">
+        update comment set status = 2 where status!=2 and commentId = #{commentId}
+    </update>
+</mapper>

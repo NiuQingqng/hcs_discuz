@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.niuniu.hcs_discuz.dao.ITopicDao">
+    <sql id="all_columns">
+        topicId, userId, categoryId, title, content, isComment, status, `order`, updateTime, createTime, viewCount, thumbCount, commentCount, thumbnail
+    </sql>
+
+    <select id="findAll" resultType="com.niuniu.hcs_discuz.model.Topic">
+        select <include refid="all_columns"/> from topic where status!=2 order by updateTime desc
+    </select>
+
+    <select id="findAllByHot" resultType="com.niuniu.hcs_discuz.model.Topic">
+        select <include refid="all_columns"/> from topic where status!=2 order by thumbCount desc
+    </select>
+
+    <select id="findOneTopicById" resultType="com.niuniu.hcs_discuz.model.Topic" parameterType="int">
+        select <include refid="all_columns"/> from topic where status!=2 and topicId = #{topicId}
+    </select>
+
+    <select id="findTopicByCondition" resultType="com.niuniu.hcs_discuz.model.Topic" parameterType="com.niuniu.hcs_discuz.model.Topic">
+        select <include refid="all_columns"/> from topic where status!=2
+        <if test="topicId!=null and topicId>0"> and topicId = #{topicId}</if>
+        <if test="userId!=null and userId>0"> and userId = #{userId}</if>
+        <if test="categoryId!=null and categoryId>0"> and categoryId = #{categoryId}</if>
+        <if test="title!=null and title!=''"> and title like #{title}</if>
+        <if test="status!=null and status>0"> and status = #{status}</if>
+    </select>
+
+    <insert id="addTopic" parameterType="com.niuniu.hcs_discuz.model.Topic">
+        insert into topic (<include refid="all_columns"/>)
+        values (
+        #{topicId}
+        ,#{userId}
+        ,#{categoryId}
+        ,#{title}
+        ,#{content}
+        ,#{isComment}
+        ,1
+        ,100
+        ,now()
+        ,now()
+        ,0
+        ,0
+        ,0
+        ,#{thumbnail}
+        );
+    </insert>
+
+    <update id="updateTopic" parameterType="com.niuniu.hcs_discuz.model.Topic">
+        update topic set
+        <if test="categoryId!=null and categoryId>0"> categoryId = #{categoryId},</if>
+        <if test="title!=null and title!=''"> title = #{title},</if>
+        <if test="content!=null and content!=''"> content = #{content},</if>
+        <if test="isComment!=null"> isComment = #{isComment},</if>
+        <if test="order!=null and order>0"> `order` = #{order},</if>
+        <if test="thumbnail!=null and thumbnail!=''"> thumbnail = #{thumbnail},</if>
+        updateTime = now()
+        where status!=2 and topicId = #{topicId}
+    </update>
+
+    <!--    被浏览、收到点赞、评论时更新数量，update里set标签可以智能去除最后一个逗号-->
+    <update id="updateCount" parameterType="com.niuniu.hcs_discuz.model.Topic">
+        update topic
+        <set>
+            <if test="viewCount!=null and viewCount>=0"> viewCount = #{viewCount},</if>
+            <if test="thumbCount!=null and thumbCount>=0"> thumbCount = #{thumbCount},</if>
+            <if test="commentCount!=null and commentCount>=0"> commentCount = #{commentCount},</if>
+        </set>
+        where status!=2 and topicId = #{topicId}
+    </update>
+
+    <update id="delTopic" parameterType="int">
+        update topic set status = 2 where status!=2 and topicId = #{topicId}
+    </update>
+</mapper>

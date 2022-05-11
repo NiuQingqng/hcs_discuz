@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.niuniu.hcs_discuz.dao.IAdviseDao">
+    <sql id="all_columns">
+        adviseId
+        , `describe`, content, userId, topicId, commentId, `result`, resultStr, adviseUserId, adminId, createTime, handleTime, category
+    </sql>
+
+    <resultMap id="messageMap" type="com.niuniu.hcs_discuz.model.Advise">
+        <id column="adviseId" property="adviseId"/>
+        <result column="adviseUserId" property="adviseUserId"></result>
+        <result column="content" property="content"></result>
+        <result column="createTime" property="createTime"></result>
+        <association property="user" column="adviseUserId" javaType="com.niuniu.hcs_discuz.model.User">
+            <id column="userId" property="userId"/>
+            <result column="username" property="username"/>
+            <result column="avatar" property="avatar"/>
+        </association>
+    </resultMap>
+
+    <select id="findAll" resultType="com.niuniu.hcs_discuz.model.Advise">
+        select
+        <include refid="all_columns"/>
+        from advise where category = 2 order by adviseId desc
+    </select>
+
+    <select id="findAllMessage" resultMap="messageMap">
+        select advise.adviseId, advise.adviseUserId, advise.content, advise.createTime, `user`.username, `user`.avatar
+        from advise,
+             `user`
+        where advise.category = 1
+          and advise.adviseUserId = `user`.userId
+        order by advise.adviseId desc limit 0,5
+    </select>
+
+    <select id="findAdviseByCategory" resultType="com.niuniu.hcs_discuz.model.Advise" parameterType="int">
+        select
+        <include refid="all_columns"/>
+        from advise
+        where `result` = #{category} and category = 2
+    </select>
+
+    <insert id="addAdvise" parameterType="com.niuniu.hcs_discuz.model.Advise">
+        insert into advise (<include refid="all_columns"/>)
+        values (
+        #{adviseId}
+        ,#{describe}
+        ,#{content}
+        ,#{userId}
+        ,#{topicId}
+        ,#{commentId}
+        ,1
+        ,null
+        ,#{adviseUserId}
+        ,null
+        ,now()
+        ,null
+        ,#{category}
+        );
+    </insert>
+
+    <update id="handleAdvise" parameterType="com.niuniu.hcs_discuz.model.Advise">
+        update advise
+        set `result`   = 2,
+            adminId=#{adminId},
+            handleTime = now()
+        where adviseId = #{adviseId}
+    </update>
+
+    <delete id="deleteAdvise" parameterType="int">
+        delete
+        from advise
+        where adviseId = #{adviseId}
+    </delete>
+</mapper>

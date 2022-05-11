@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.niuniu.hcs_discuz.dao.ICategoryDao">
+    <sql id="all_columns">
+        categoryId, categoryName, description, `order`, icon, topicCount, status
+    </sql>
+
+    <select id="findAll" resultType="com.niuniu.hcs_discuz.model.Category">
+        select <include refid="all_columns"/> from category where status!=3 order by `order`
+    </select>
+
+    <select id="findOneCategoryById" resultType="com.niuniu.hcs_discuz.model.Category" parameterType="int">
+        select <include refid="all_columns"/> from category
+        where status!=2 and categoryId = #{categoryId}
+    </select>
+
+    <insert id="addCategory" parameterType="com.niuniu.hcs_discuz.model.Category">
+        insert into category (<include refid="all_columns"/>)
+        values (
+        #{categoryId}
+        ,#{categoryName}
+        ,#{description}
+        ,#{order}
+        ,#{icon}
+        ,0
+        ,1
+        );
+    </insert>
+
+    <update id="updateCategory" parameterType="com.niuniu.hcs_discuz.model.Category">
+        update category
+        <set>
+            <if test="categoryName!=null and categoryName!=''"> categoryName = #{categoryName},</if>
+            <if test="description!=null and description!=''"> description = #{description},</if>
+            <if test="order!=null and order>=0"> `order` = #{order},</if>
+            <if test="icon!=null and icon!=''"> icon = #{icon},</if>
+            <if test="status!=null and status>0"> status = #{status}</if>
+        </set>
+        where status!=3 and categoryId = #{categoryId}
+    </update>
+
+    <!--    分类下帖子数量变化时更新数量，update里set标签可以智能去除最后一个逗号-->
+    <update id="updateCount" parameterType="com.niuniu.hcs_discuz.model.Category">
+        update category
+        <set>
+            <if test="topicCount!=null and topicCount>=0"> topicCount = #{topicCount}</if>
+        </set>
+        where status!=3 and categoryId = #{categoryId}
+    </update>
+
+    <update id="delCategory" parameterType="int">
+        update category set status = 3 where status!=3 and categoryId = #{categoryId}
+    </update>
+</mapper>

@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    password: 你的数据库密码
+my:
+  file:
+    serverPath: /var/www/upload/
